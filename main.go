@@ -13,28 +13,24 @@ import (
 
 // getGitChanges fetches all modified files and their diffs
 func getGitChanges(baseBranch, targetBranch string) (map[string]string, error) {
-	cmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--name-only --pretty=format:* %h - %s (%an, %ad)")
+	cmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--name-only")
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
 
 	changes := make(map[string]string)
-	files := strings.Split(out.String(), "\n")
+	files := strings.Split(strings.TrimSpace(out.String()), "\n")
 
 	for _, file := range files {
-		file = strings.TrimSpace(file)
 		if file == "" {
 			continue
 		}
-
 		diffCmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--", file)
 		var diffOut bytes.Buffer
 		diffCmd.Stdout = &diffOut
 		diffCmd.Run()
-
 		changes[file] = diffOut.String()
 	}
 
@@ -44,12 +40,13 @@ func getGitChanges(baseBranch, targetBranch string) (map[string]string, error) {
 // generatePDF creates the TSD PDF
 func generatePDF(changes map[string]string) error {
 	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.SetMargins(15, 15, 15)
+	pdf.SetMargins(10, 10, 10)
 	pdf.AddPage()
 
 	// Title
 	pdf.SetFont("Arial", "B", 16)
 	pdf.Cell(190, 10, "Technical Specification Document (TSD)")
+<<<<<<< Updated upstream
 	pdf.Ln(15)
 
 	// Developer & Project Info
@@ -59,73 +56,67 @@ func generatePDF(changes map[string]string) error {
 
 	headers := []string{"Developer", "Project Name", "Project Status"}
 	values := []string{"John Doe", "Inventory System", "In Progress"}
+=======
+	pdf.Ln(12)
+>>>>>>> Stashed changes
 
+	// Developer & Project Info Table
 	pdf.SetFont("Arial", "", 12)
-	for i := 0; i < len(headers); i++ {
-		pdf.CellFormat(63, 10, headers[i], "1", 0, "C", false, 0, "")
-	}
-	pdf.Ln(-1)
-	for i := 0; i < len(values); i++ {
-		pdf.CellFormat(63, 10, values[i], "1", 0, "C", false, 0, "")
-	}
-	pdf.Ln(15)
+	pdf.Cell(40, 8, "Developer: John Doe")
+	pdf.Ln(6)
+	pdf.Cell(40, 8, "Project: Inventory System")
+	pdf.Ln(6)
+	pdf.Cell(40, 8, "Status: In Progress")
+	pdf.Ln(12)
 
-	// Code Changes Section
+	// Code Changes Table
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(190, 10, "Code Changes")
+	pdf.Cell(190, 8, "Code Changes")
 	pdf.Ln(10)
 
-	if len(changes) == 0 {
-		pdf.SetFont("Arial", "", 12)
-		pdf.Cell(190, 10, "No code changes detected.")
-		pdf.Ln(10)
-	} else {
-		for file, diff := range changes {
-			// Filename
-			pdf.SetFont("Arial", "B", 12)
-			pdf.Cell(190, 10, "Filename: "+file)
-			pdf.Ln(5)
+	for file, diff := range changes {
+		pdf.SetFont("Arial", "B", 12)
+		pdf.Cell(190, 8, "File: "+file)
+		pdf.Ln(6)
 
-			// Code diff (inside a bordered multi-line cell)
-			pdf.SetFont("Courier", "", 10)
-			pdf.MultiCell(190, 6, diff, "1", "L", false)
-			pdf.Ln(5)
+		pdf.SetFont("Courier", "", 10)
+		lines := strings.Split(diff, "\n")
+		for _, line := range lines {
+			if strings.HasPrefix(line, "+") {
+				pdf.SetTextColor(0, 128, 0) // Green for additions
+			} else if strings.HasPrefix(line, "-") {
+				pdf.SetTextColor(255, 0, 0) // Red for deletions
+			} else {
+				pdf.SetTextColor(0, 0, 0) // Black for unchanged lines
+			}
+			pdf.Cell(190, 5, line)
+			pdf.Ln(4)
 		}
+		pdf.Ln(6)
 	}
 
-	// Empty Query Changes Table
+	// Query Changes Table (Empty)
+	pdf.SetTextColor(0, 0, 0)
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(190, 10, "Query Changes")
+	pdf.Cell(190, 8, "Query Changes")
 	pdf.Ln(10)
-	pdf.CellFormat(190, 20, "No query changes detected", "1", 0, "C", false, 0, "")
-	pdf.Ln(15)
+	pdf.Cell(190, 30, "(No changes)")
+	pdf.Ln(20)
 
-	// Sign Approval Section
+	// Sign Approval Table
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(190, 10, "Sign Approval")
+	pdf.Cell(190, 8, "Sign Approval")
 	pdf.Ln(10)
-
-	signHeaders := []string{"Role", "Name", "Signature"}
-	signValues := []string{"Lead Developer", "John Doe", "[Signed]"}
-
 	pdf.SetFont("Arial", "", 12)
-	for i := 0; i < len(signHeaders); i++ {
-		pdf.CellFormat(63, 10, signHeaders[i], "1", 0, "C", false, 0, "")
-	}
-	pdf.Ln(-1)
-	for i := 0; i < len(signValues); i++ {
-		pdf.CellFormat(63, 10, signValues[i], "1", 0, "C", false, 0, "")
-	}
+	pdf.Cell(190, 8, "Role: Lead Developer")
+	pdf.Ln(6)
+	pdf.Cell(190, 8, "Name: John Doe")
+	pdf.Ln(6)
+	pdf.Cell(190, 8, "Signature: [Signed]")
 
 	// Save PDF
-	fileName := fmt.Sprintf("TSD_%s.pdf", time.Now().Format("20060102_150405"))
-	err := pdf.OutputFileAndClose(fileName)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("TSD PDF generated successfully:", fileName)
-	return nil
+	fileName := fmt.Sprintf("tsd_%s.pdf", time.Now().Format("20060102_150405"))
+	return pdf.OutputFileAndClose(fileName)
 }
 
 func main() {
@@ -150,4 +141,6 @@ func main() {
 		fmt.Println("Error generating PDF:", err)
 		return
 	}
+
+	fmt.Println("TSD PDF generated successfully!")
 }
