@@ -46,19 +46,7 @@ func generatePDF(changes map[string]string) error {
 	// Title
 	pdf.SetFont("Arial", "B", 16)
 	pdf.Cell(190, 10, "Technical Specification Document (TSD)")
-<<<<<<< Updated upstream
-	pdf.Ln(15)
-
-	// Developer & Project Info
-	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(190, 10, "Project Information")
-	pdf.Ln(10)
-
-	headers := []string{"Developer", "Project Name", "Project Status"}
-	values := []string{"John Doe", "Inventory System", "In Progress"}
-=======
 	pdf.Ln(12)
->>>>>>> Stashed changes
 
 	// Developer & Project Info Table
 	pdf.SetFont("Arial", "", 12)
