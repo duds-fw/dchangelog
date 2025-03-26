@@ -25,6 +25,8 @@ go install github.com/duds-fw/dchangelog
 dchangelog generate --config=config.json --dest=parent-branch --src=child-branch
 ```
 
+[config-sample](https://github.com/duds-fw/dchangelog/blob/main/config.json)
+
 ### Merge
 
 ```bash
