@@ -1,0 +1,25 @@
+{
+    "pr":{
+        "link":"https://dev.azure.com/XXXX"
+    },
+    "jira":{
+        "title":"JIRA-001",
+        "link":"https://jira.com/XXXX",
+        "description":"Mengubah File Menjadi PDF"
+    },
+    "developer":{
+        "name":"Imaduddin.Haris[ITB-SOE]",
+        "title":"Developer"
+    },
+    "project":{
+        "title":"Tiket",
+        "value":"Tiket-001"
+    },
+    "status":{
+        "title":"in-progess"
+    },
+    "sign_approval":{
+        "name":"Tech Lead Name",
+        "role":"Tech Lead"
+    }
+}
