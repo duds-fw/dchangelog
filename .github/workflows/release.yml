@@ -1,0 +1,38 @@
+name: Release DChangelog
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-release'
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build for Linux
+        run: GOOS=linux GOARCH=amd64 go build -o dchangelog-linux main.go
+
+      - name: Build for macOS
+        run: GOOS=darwin GOARCH=amd64 go build -o dchangelog-mac main.go
+
+      - name: Build for Windows
+        run: GOOS=windows GOARCH=amd64 go build -o dchangelog-win.exe main.go
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dchangelog-linux
+            dchangelog-mac
+            dchangelog-win.exe
+          token: ${{ secrets.PAT_TOKEN }}
