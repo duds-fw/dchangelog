@@ -19,10 +19,13 @@ go install github.com/duds-fw/dchangelog@latest
 
 ## Usage
 
-### Generate (make sure you have created a document configuration in config.json)
+### Generate 
+
+1. make sure you have created a document configuration in config.json
+2. make sure your code in source branch you want to make Pull Request
 
 ```bash
-dchangelog generate --config=config.json --dest=parent-branch --src=child-branch
+dchangelog generate --config=config.json --dest=parent-branch
 ```
 
 [config-sample](https://github.com/duds-fw/dchangelog/blob/main/config.json)
