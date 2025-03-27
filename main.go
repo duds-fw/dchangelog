@@ -59,11 +59,60 @@ func LoadConfig(filename string) (*Config, error) {
 }
 
 // getGitChanges fetches all modified files and their diffs
-func getGitChanges(baseBranch, targetBranch string) (map[string]string, error) {
-	cmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--name-only")
+// func getGitChanges(baseBranch, targetBranch string) (map[string]string, error) {
+// 	cmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--name-only")
+// 	var out bytes.Buffer
+// 	cmd.Stdout = &out
+// 	err := cmd.Run()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	changes := make(map[string]string)
+// 	files := strings.Split(out.String(), "\n")
+
+// 	for _, file := range files {
+// 		if strings.TrimSpace(file) == "" {
+// 			continue
+// 		}
+
+// 		diffCmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--", file)
+// 		var diffOut bytes.Buffer
+// 		diffCmd.Stdout = &diffOut
+// 		diffCmd.Run()
+
+// 		changes[file] = diffOut.String()
+// 	}
+
+// 	return changes, nil
+// }
+// getGitPRChanges fetches only modified files in the PR
+func getGitPRChanges(baseBranch string) (map[string]string, error) {
+	// Get the latest commit in the PR branch
+	prHeadCmd := exec.Command("git", "rev-parse", "HEAD")
+	var prHeadOut bytes.Buffer
+	prHeadCmd.Stdout = &prHeadOut
+	err := prHeadCmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get PR HEAD: %v", err)
+	}
+	prHead := strings.TrimSpace(prHeadOut.String())
+
+	// Get the merge base (common ancestor) of the base branch and PR branch
+	mergeBaseCmd := exec.Command("git", "merge-base", baseBranch, prHead)
+	var mergeBaseOut bytes.Buffer
+	mergeBaseCmd.Stdout = &mergeBaseOut
+	err = mergeBaseCmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get merge base: %v", err)
+	}
+	mergeBase := strings.TrimSpace(mergeBaseOut.String())
+
+	// Get the list of changed files between merge base and PR HEAD
+	cmd := exec.Command("git", "diff", "--name-only", mergeBase, prHead)
 	var out bytes.Buffer
 	cmd.Stdout = &out
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +125,7 @@ func getGitChanges(baseBranch, targetBranch string) (map[string]string, error) {
 			continue
 		}
 
-		diffCmd := exec.Command("git", "diff", baseBranch+".."+targetBranch, "--", file)
+		diffCmd := exec.Command("git", "diff", mergeBase, prHead, "--", file)
 		var diffOut bytes.Buffer
 		diffCmd.Stdout = &diffOut
 		diffCmd.Run()
@@ -211,33 +260,34 @@ func main() {
 
 	if slices.Contains(usage, args1) {
 		if args1 == "generate" {
-
-			if *configFile != "" && *baseBranch != "" && *targetBranch != "" {
-				fmt.Println("Load config ", *configFile, " ...")
-				config, err := LoadConfig(*configFile)
-				if err != nil {
-					log.Fatal("Error loading config:", err)
-					return
-				}
-
-				fmt.Println("Fetching Git changes between", *baseBranch, "and", *targetBranch)
-				changes, err := getGitChanges(*baseBranch, *targetBranch)
-				if err != nil {
-					log.Fatal("Error fetching Git changes:", err)
-					return
-				}
-				fmt.Println("Generating TSD PDF...")
-				err = generatePDF(config, changes)
-				if err != nil {
-					log.Fatal("Error generating PDF:", err)
-					return
-				}
-				fmt.Println("TSD PDF generated successfully!")
-			} else {
-				log.Fatalf("Error Usage\nGenerate TSD: %s generate --config=<jsonfile> --dest=<base_branch> --src=<target_branch>", cliScript)
-			}
-
+	if *configFile != "" && *baseBranch != "" {
+		fmt.Println("Load config ", *configFile, " ...")
+		config, err := LoadConfig(*configFile)
+		if err != nil {
+			log.Fatal("Error loading config:", err)
+			return
 		}
+
+		fmt.Println("Fetching Git changes in PR with base branch:", *baseBranch)
+		changes, err := getGitPRChanges(*baseBranch)
+		if err != nil {
+			log.Fatal("Error fetching PR changes:", err)
+			return
+		}
+
+		fmt.Println("Generating TSD PDF...")
+		err = generatePDF(config, changes)
+		if err != nil {
+			log.Fatal("Error generating PDF:", err)
+			return
+		}
+
+		fmt.Println("TSD PDF generated successfully!")
+	} else {
+		log.Fatalf("Error Usage\nGenerate TSD: %s generate --config=<jsonfile> --dest=<base_branch>", cliScript)
+	}
+}
+
 		if args1 == "merge" {
 			if *folderPath != "" {
 				fmt.Println("Merging PDFs in folder:", *folderPath)
