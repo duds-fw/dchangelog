@@ -11,7 +11,7 @@ Changelog is CLI for generating document for changes code betwen 2 git branch. T
 
 ## Installation
 
-To install Badger ORM, use the following command:
+To install DChangelog, use the following command:
 
 ```bash
 go install github.com/duds-fw/dchangelog@latest
@@ -19,7 +19,7 @@ go install github.com/duds-fw/dchangelog@latest
 
 ## Usage
 
-### Generate
+### Generate (make sure you have created a document configuration in config.json)
 
 ```bash
 dchangelog generate --config=config.json --dest=parent-branch --src=child-branch
