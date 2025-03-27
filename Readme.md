@@ -14,7 +14,7 @@ Changelog is CLI for generating document for changes code betwen 2 git branch. T
 To install Badger ORM, use the following command:
 
 ```bash
-go install github.com/duds-fw/dchangelog
+go install github.com/duds-fw/dchangelog@latest
 ```
 
 ## Usage
