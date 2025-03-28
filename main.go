@@ -244,7 +244,7 @@ func main() {
 	args1 := os.Args[1]
 
 	baseBranch := flag.String("dest", "", "Base branch for Git diff")
-	targetBranch := flag.String("src", "", "Target branch for Git diff")
+	// targetBranch := flag.String("src", "", "Target branch for Git diff")
 	folderPath := flag.String("folder", "", "Folder containing PDFs to merge")
 	configFile := flag.String("config", "", "Config json")
 	flag.CommandLine.Parse(os.Args[2:])
